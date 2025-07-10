@@ -14,7 +14,7 @@ if "authenticated" not in st.session_state:
     st.session_state.authenticated = False
 
 if not st.session_state.authenticated:
-    st.title("🔐 Login Required")
+    st.title(" Login Required")
     username = st.text_input("Username")
     password = st.text_input("Password", type="password")
     if st.button("Login"):
@@ -76,11 +76,11 @@ if not st.session_state.emergency_active:
 
 # --- Control Panel ---
 with st.sidebar:
-    st.title("🧠 Command Center")
-    st.metric("💰 Budget", f"£{st.session_state.budget}")
-    st.progress(st.session_state.trust / 100.0, text=f"🤝 Trust: {st.session_state.trust}%")
+    st.title(" Command Center")
+    st.metric(" Budget", f"£{st.session_state.budget}")
+    st.progress(st.session_state.trust / 100.0, text=f" Trust: {st.session_state.trust}%")
 
-    if st.button("⚠️ Trigger Random Emergency"):
+    if st.button("⚠ Trigger Random Emergency"):
         st.session_state.emergency_room = random.choice(list(st.session_state.robots.keys()))
         st.session_state.emergency_active = True
 
@@ -97,9 +97,9 @@ def render_room(name, col):
     col.markdown(f'<div class="{box_class}">', unsafe_allow_html=True)
     col.markdown(f'<div class="room-title">{name}</div>', unsafe_allow_html=True)
     if robot_here:
-        col.markdown("🤖 Robot present")
+        col.markdown(" Robot present")
     if name == "Command Center":
-        col.button("📨 Send Report", key="cmd_report")
+        col.button(" Send Report", key="cmd_report")
     else:
         col.button(f"Complete Task in {name}", key=f"task_{name}")
     col.markdown('</div>', unsafe_allow_html=True)
@@ -113,7 +113,7 @@ for i in range(3, 6):
 
 # --- Emergency Response ---
 if st.session_state.emergency_active:
-    st.markdown(f"### 🚨 Emergency in **{st.session_state.emergency_room}**")
+    st.markdown(f"###  Emergency in **{st.session_state.emergency_room}**")
     options = [
         "Do nothing",
         f"Send Robot to {st.session_state.emergency_room} (-£2)",
