@@ -1,6 +1,32 @@
 import streamlit as st
 import random
 import datetime
+from streamlit_autorefresh import st_autorefresh
+from hashlib import sha256
+
+# --- Basic Authentication ---
+users = {
+    "admin": sha256("password123".encode()).hexdigest(),
+    "researcher": sha256("truststudy".encode()).hexdigest()
+}
+
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+
+if not st.session_state.authenticated:
+    st.title("🔐 Login Required")
+    username = st.text_input("Username")
+    password = st.text_input("Password", type="password")
+    if st.button("Login"):
+        if username in users and sha256(password.encode()).hexdigest() == users[username]:
+            st.session_state.authenticated = True
+            st.experimental_rerun()
+        else:
+            st.error("Invalid credentials. Please try again.")
+    st.stop()
+
+# --- Auto Refresh Every 30 Seconds ---
+st_autorefresh(interval=30 * 1000, key="auto_refresh")
 
 # --- Page Setup ---
 st.set_page_config(page_title="Care Home Simulator", layout="wide")
@@ -43,13 +69,18 @@ if "emergency_room" not in st.session_state:
 if "emergency_active" not in st.session_state:
     st.session_state.emergency_active = False
 
+# --- Auto-trigger Emergency Every 30s if None Active ---
+if not st.session_state.emergency_active:
+    st.session_state.emergency_room = random.choice(list(st.session_state.robots.keys()))
+    st.session_state.emergency_active = True
+
 # --- Control Panel ---
 with st.sidebar:
-    st.title("Control Room")
-    st.metric("Budget", f"£{st.session_state.budget}")
-    st.progress(st.session_state.trust / 100.0, text=f" Trust: {st.session_state.trust}%")
+    st.title("🧠 Command Center")
+    st.metric("💰 Budget", f"£{st.session_state.budget}")
+    st.progress(st.session_state.trust / 100.0, text=f"🤝 Trust: {st.session_state.trust}%")
 
-    if st.button("Trigger Random Emergency"):
+    if st.button("⚠️ Trigger Random Emergency"):
         st.session_state.emergency_room = random.choice(list(st.session_state.robots.keys()))
         st.session_state.emergency_active = True
 
@@ -66,9 +97,9 @@ def render_room(name, col):
     col.markdown(f'<div class="{box_class}">', unsafe_allow_html=True)
     col.markdown(f'<div class="room-title">{name}</div>', unsafe_allow_html=True)
     if robot_here:
-        col.markdown("Robot present")
-    if name == "Control Center":
-        col.button(" Send Report", key="cmd_report")
+        col.markdown("🤖 Robot present")
+    if name == "Command Center":
+        col.button("📨 Send Report", key="cmd_report")
     else:
         col.button(f"Complete Task in {name}", key=f"task_{name}")
     col.markdown('</div>', unsafe_allow_html=True)
@@ -82,7 +113,7 @@ for i in range(3, 6):
 
 # --- Emergency Response ---
 if st.session_state.emergency_active:
-    st.markdown(f"### Emergency in **{st.session_state.emergency_room}**")
+    st.markdown(f"### 🚨 Emergency in **{st.session_state.emergency_room}**")
     options = [
         "Do nothing",
         f"Send Robot to {st.session_state.emergency_room} (-£2)",
@@ -113,6 +144,6 @@ if st.session_state.emergency_active:
             st.session_state.trust = min(st.session_state.trust + 2, 100)
 
 # --- Logs ---
-st.markdown("### Action Log")
+st.markdown("### 📋 Action Log")
 for log in st.session_state.logs[::-1]:
     st.write(f"{log['time']} — {log['event']} | {log['response']} | Cost: £{log['cost']} | Remaining: £{log['budget_remaining']}")
